@@ -418,6 +418,7 @@ textarea::placeholder, .inp::placeholder { color:var(--muted); }
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // ЗАМЕНИ эти две строки после создания бота:
+const TG_TOKEN  = '8706454342:AAHFPgGrMWbVSJqxEUvNIGUQPL6_44tUcYc';
 const TG_CHAT_ID = '2101269840';
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -499,7 +500,7 @@ async function finish() {
 }
 
 async function sendToTelegram() {
-  if (!TG_TOKEN || TG_TOKEN === '8706454342:AAHFPgGrMWbVSJqxEUvNIGUQPL6_44tUcYc') return;
+  
 
   const labels = {
     q1:  '👤 Роль',
