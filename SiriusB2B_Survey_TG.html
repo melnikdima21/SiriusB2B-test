@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiriusB2B — 3 минуты честно</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:    #08080e;
+  --card:  #10101a;
+  --bd:    rgba(255,255,255,0.07);
+  --p:     #7c5cfc;
+  --pm:    #a78bfa;
+  --pl:    rgba(124,92,252,0.11);
+  --txt:   #eaeaf4;
+  --muted: #646478;
+  --green: #22c55e;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Ambient glow */
+body::before {
+  content:'';
+  position:fixed; top:-180px; left:50%;
+  transform:translateX(-50%);
+  width:760px; height:420px;
+  background:radial-gradient(ellipse,rgba(124,92,252,.16) 0%,transparent 68%);
+  pointer-events:none; z-index:0;
+}
+
+/* ── LAYOUT ── */
+.shell {
+  max-width:580px;
+  margin:0 auto;
+  padding:40px 22px 100px;
+  position:relative; z-index:1;
+}
+
+/* ── LOGO ── */
+.logo { display:flex; align-items:center; gap:10px; margin-bottom:44px; }
+.logo-mark {
+  width:36px; height:36px; border-radius:10px;
+  background:var(--p); color:#fff;
+  font-family:'Syne',sans-serif; font-size:15px; font-weight:900;
+  display:flex; align-items:center; justify-content:center;
+  letter-spacing:-1px;
+}
+.logo-name { font-family:'Syne',sans-serif; font-weight:900; font-size:17px; letter-spacing:-.5px; }
+.logo-name span { color:var(--pm); }
+
+/* ── PROGRESS ── */
+.prog-wrap { margin-bottom:34px; }
+.prog-meta { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:7px; }
+.prog-track { height:3px; background:rgba(255,255,255,.06); border-radius:100px; overflow:hidden; }
+.prog-fill  { height:100%; background:linear-gradient(90deg,var(--p),var(--pm)); border-radius:100px; transition:width .45s cubic-bezier(.4,0,.2,1); }
+
+/* ── SCREENS ── */
+.screen { display:none; animation:rise .32s ease both; }
+.screen.on { display:block; }
+@keyframes rise {
+  from { opacity:0; transform:translateY(18px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── INTRO ── */
+.pill {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--pl); border:1px solid rgba(124,92,252,.3);
+  border-radius:100px; padding:5px 14px;
+  font-size:11px; font-weight:600; color:var(--pm);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:18px;
+}
+.pill-dot { width:6px; height:6px; border-radius:50%; background:var(--pm); animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+.intro-h { font-family:'Syne',sans-serif; font-size:clamp(28px,7vw,42px); font-weight:900; line-height:1.1; letter-spacing:-1.5px; margin-bottom:14px; }
+.intro-h em { font-style:normal; color:var(--pm); }
+.intro-p { font-size:15px; color:var(--muted); line-height:1.7; max-width:460px; margin-bottom:34px; }
+.intro-p strong { color:var(--txt); }
+
+/* ── CARD ── */
+.qcard {
+  background:var(--card); border:1px solid var(--bd); border-radius:20px;
+  padding:28px 28px 26px; margin-bottom:12px; position:relative; overflow:hidden;
+}
+.qcard::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,var(--p),transparent);
+}
+.qtag { font-size:10.5px; font-weight:700; color:var(--p); text-transform:uppercase; letter-spacing:2px; margin-bottom:11px; }
+.qtext { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; line-height:1.35; letter-spacing:-.3px; margin-bottom:6px; }
+.qsub { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:22px; }
+
+/* ── CHOICES ── */
+.choices { display:flex; flex-direction:column; gap:7px; }
+.choice {
+  background:rgba(255,255,255,.03); border:1.5px solid var(--bd);
+  border-radius:12px; padding:13px 16px;
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; color:var(--txt);
+  cursor:pointer; text-align:left; display:flex; align-items:center; gap:12px;
+  transition:border-color .15s, background .15s;
+}
+.choice:hover { border-color:rgba(124,92,252,.45); background:var(--pl); }
+.choice.sel   { border-color:var(--p); background:var(--pl); color:#fff; }
+.chk {
+  width:18px; height:18px; flex-shrink:0;
+  border:1.5px solid var(--muted); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; transition:all .15s;
+}
+.choice.sel .chk { background:var(--p); border-color:var(--p); color:#fff; }
+.chk-sq { border-radius:4px !important; }
+
+/* ── SCALE ── */
+.scale-row { display:flex; gap:5px; margin-bottom:8px; }
+.scl {
+  flex:1; aspect-ratio:1;
+  background:rgba(255,255,255,.04); border:1.5px solid var(--bd);
+  border-radius:9px; font-size:13px; font-weight:700; color:var(--muted);
+  cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.scl:hover, .scl.sel { border-color:var(--p); background:var(--pl); color:var(--pm); }
+.scale-lbl { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); }
+
+/* ── TEXT / INPUT ── */
+textarea, .inp {
+  width:100%; background:rgba(255,255,255,.04); border:1px solid var(--bd);
+  border-radius:12px; padding:14px 16px;
+  font-family:'DM Sans',sans-serif; font-size:15px; color:var(--txt);
+  outline:none; transition:border-color .2s, background .2s; resize:none;
+}
+textarea:focus, .inp:focus { border-color:var(--p); background:rgba(124,92,252,.06); }
+textarea::placeholder, .inp::placeholder { color:var(--muted); }
+
+.price-wrap { position:relative; }
+.price-pfx { position:absolute; left:15px; top:50%; transform:translateY(-50%); font-size:13px; font-weight:700; color:var(--pm); pointer-events:none; }
+.price-inp { padding-left:54px !important; font-size:20px; font-weight:800; }
+
+/* ── HINT ── */
+.hint { font-size:11px; color:var(--muted); margin-top:7px; }
+
+/* ── NAV ── */
+.nav { display:flex; gap:10px; margin-top:4px; }
+.btn-back {
+  background:none; border:1.5px solid var(--bd); border-radius:12px;
+  padding:13px 18px; color:var(--muted); font-size:14px; font-weight:500;
+  cursor:pointer; font-family:inherit; transition:all .15s;
+  white-space:nowrap;
+}
+.btn-back:hover { color:var(--txt); border-color:rgba(255,255,255,.2); }
+.btn-next {
+  flex:1; border:none; border-radius:12px;
+  padding:14px 20px; font-size:15px; font-weight:700;
+  cursor:pointer; font-family:inherit;
+  background:var(--p); color:#fff;
+  transition:all .18s;
+}
+.btn-next:hover:not(:disabled) { background:#6848e8; transform:translateY(-1px); }
+.btn-next:disabled { opacity:.35; cursor:default; transform:none; }
+.btn-full { width:100%; }
+
+/* ── THANKS ── */
+.thanks { text-align:center; padding:48px 0 0; }
+.ty-ring {
+  width:76px; height:76px; border-radius:50%;
+  background:rgba(34,197,94,.1); border:1.5px solid rgba(34,197,94,.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:34px; margin:0 auto 24px;
+}
+.ty-h { font-family:'Syne',sans-serif; font-size:32px; font-weight:900; letter-spacing:-1.5px; margin-bottom:12px; }
+.ty-h em { font-style:normal; color:var(--pm); }
+.ty-p { font-size:15px; color:var(--muted); line-height:1.7; max-width:380px; margin:0 auto 34px; }
+.ty-demo {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--p); color:#fff; text-decoration:none;
+  padding:14px 28px; border-radius:13px; font-weight:700; font-size:15px;
+  transition:all .18s;
+}
+.ty-demo:hover { background:#6848e8; transform:translateY(-1px); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- LOGO -->
+  <div class="logo">
+    <div class="logo-mark">S²</div>
+    <div class="logo-name">Sirius<span>B2B</span></div>
+  </div>
+
+  <!-- PROGRESS (скрыт на intro и thanks) -->
+  <div class="prog-wrap" id="progWrap" style="display:none">
+    <div class="prog-meta">
+      <span id="progLabel">Вопрос 1 из 10</span>
+      <span id="progPct">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- ══ INTRO ══ -->
+  <div class="screen on" id="s-intro">
+    <div class="pill"><span class="pill-dot"></span>CustDev · Бухгалтеры</div>
+    <h1 class="intro-h">Помоги нам<br><em>не облажаться.</em></h1>
+    <p class="intro-p">Строим платформу для проверки молдавских компаний. Прежде чем строить дальше — хотим понять реальные боли. <strong>10 вопросов, 3–4 минуты, анонимно.</strong></p>
+    <button class="btn-next btn-full" onclick="startSurvey()">Начать →</button>
+  </div>
+
+  <!-- ══ Q1: Как работаешь ══ -->
+  <div class="screen" id="s-1">
+    <div class="qcard">
+      <div class="qtag">01 — Контекст</div>
+      <div class="qtext">Как ты работаешь?</div>
+      <div class="qsub">Это влияет на то насколько продукт тебе подойдёт</div>
+      <div class="choices" id="q1">
+        <button class="choice" onclick="pick('q1',this,'Частный бухгалтер — веду клиентов сам')"><span class="chk"></span>Частный бухгалтер — веду клиентов сам</button>
+        <button class="choice" onclick="pick('q1',this,'Работаю в бухгалтерской фирме')"><span class="chk"></span>Работаю в бухгалтерской фирме</button>
+        <button class="choice" onclick="pick('q1',this,'Штатный бухгалтер в одной компании')"><span class="chk"></span>Штатный бухгалтер в одной компании</button>
+        <button class="choice" onclick="pick('q1',this,'Другое')"><span class="chk"></span>Другое</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(0)">← Назад</button>
+      <button class="btn-next" id="n1" disabled onclick="go(2)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q2: Сколько клиентов ══ -->
+  <div class="screen" id="s-2">
+    <div class="qcard">
+      <div class="qtag">02 — Масштаб</div>
+      <div class="qtext">Сколько компаний ты обслуживаешь?</div>
+      <div class="qsub">Только порядок цифр</div>
+      <div class="choices" id="q2">
+        <button class="choice" onclick="pick('q2',this,'1–5')"><span class="chk"></span>1–5</button>
+        <button class="choice" onclick="pick('q2',this,'6–20')"><span class="chk"></span>6–20</button>
+        <button class="choice" onclick="pick('q2',this,'21–50')"><span class="chk"></span>21–50</button>
+        <button class="choice" onclick="pick('q2',this,'Больше 50')"><span class="chk"></span>Больше 50</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(1)">← Назад</button>
+      <button class="btn-next" id="n2" disabled onclick="go(3)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q3: Что проверяешь ══ -->
+  <div class="screen" id="s-3">
+    <div class="qcard">
+      <div class="qtag">03 — Главная боль</div>
+      <div class="qtext">К тебе обращается незнакомая компания. Что делаешь ДО подписания договора?</div>
+      <div class="qsub">Выбери всё что делаешь</div>
+      <div class="choices" id="q3">
+        <button class="choice" onclick="multi('q3',this,'Проверяю статус на registru.md')"><span class="chk chk-sq"></span>Проверяю статус на registru.md</button>
+        <button class="choice" onclick="multi('q3',this,'Проверяю НДС-статус')"><span class="chk chk-sq"></span>Проверяю НДС-статус</button>
+        <button class="choice" onclick="multi('q3',this,'Спрашиваю знакомых о них')"><span class="chk chk-sq"></span>Спрашиваю знакомых о них</button>
+        <button class="choice" onclick="multi('q3',this,'Ищу в Google')"><span class="chk chk-sq"></span>Ищу в Google</button>
+        <button class="choice" onclick="multi('q3',this,'Ничего не проверяю — беру на доверие')"><span class="chk chk-sq"></span>Ничего не проверяю — беру на доверие</button>
+        <button class="choice" onclick="multi('q3',this,'Другое')"><span class="chk chk-sq"></span>Другое</button>
+      </div>
+      <div class="hint">Можно выбрать несколько</div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(2)">← Назад</button>
+      <button class="btn-next" id="n3" disabled onclick="go(4)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q4: 1C вопрос — ключевой ══ -->
+  <div class="screen" id="s-4">
+    <div class="qcard">
+      <div class="qtag">04 — Ключевой вопрос</div>
+      <div class="qtext">1С показывает данные по клиентам которых ты уже ведёшь. А как узнаёшь о незнакомой компании до того как начать с ней работать?</div>
+      <div class="qsub">Ответь развёрнуто — это самый важный вопрос для нас</div>
+      <textarea id="q4" rows="4" placeholder="Например: иду на registru.md, звоню знакомым, смотрю в Google..." oninput="checkText('q4','n4')"></textarea>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(3)">← Назад</button>
+      <button class="btn-next" id="n4" disabled onclick="go(5)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q5: Плохой клиент ══ -->
+  <div class="screen" id="s-5">
+    <div class="qcard">
+      <div class="qtag">05 — Опыт</div>
+      <div class="qtext">Был ли случай что клиент оказался проблемным уже после того как начали работать?</div>
+      <div class="qsub">Долги перед налоговой, аннулировали НДС, суд — что-то такое</div>
+      <div class="choices" id="q5">
+        <button class="choice" onclick="pick('q5',this,'Да — и это создало проблемы лично мне')"><span class="chk"></span>Да — и это создало проблемы лично мне</button>
+        <button class="choice" onclick="pick('q5',this,'Да — но обошлось без последствий')"><span class="chk"></span>Да — но обошлось без последствий</button>
+        <button class="choice" onclick="pick('q5',this,'Нет, такого не было')"><span class="chk"></span>Нет, такого не было</button>
+        <button class="choice" onclick="pick('q5',this,'Не знаю / не слежу')"><span class="chk"></span>Не знаю / не слежу</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(4)">← Назад</button>
+      <button class="btn-next" id="n5" disabled onclick="go(6)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q6: Мониторинг ══ -->
+  <div class="screen" id="s-6">
+    <div class="qcard">
+      <div class="qtag">06 — Retention</div>
+      <div class="qtext">Добавляешь клиента в список — и получаешь уведомление если у него что-то меняется. Насколько нужно?</div>
+      <div class="qsub">НДС аннулировали, появился долг перед FISC, новый суд — узнаёшь первым</div>
+      <div class="scale-row" id="q6">
+        <button class="scl" onclick="pickScale('q6',this,'1')">1</button>
+        <button class="scl" onclick="pickScale('q6',this,'2')">2</button>
+        <button class="scl" onclick="pickScale('q6',this,'3')">3</button>
+        <button class="scl" onclick="pickScale('q6',this,'4')">4</button>
+        <button class="scl" onclick="pickScale('q6',this,'5')">5</button>
+        <button class="scl" onclick="pickScale('q6',this,'6')">6</button>
+        <button class="scl" onclick="pickScale('q6',this,'7')">7</button>
+        <button class="scl" onclick="pickScale('q6',this,'8')">8</button>
+        <button class="scl" onclick="pickScale('q6',this,'9')">9</button>
+        <button class="scl" onclick="pickScale('q6',this,'10')">10</button>
+      </div>
+      <div class="scale-lbl"><span>Совсем не нужно</span><span>Очень нужно</span></div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(5)">← Назад</button>
+      <button class="btn-next" id="n6" disabled onclick="go(7)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q7: Финансовые данные ══ -->
+  <div class="screen" id="s-7">
+    <div class="qcard">
+      <div class="qtag">07 — Дифференциатор</div>
+      <div class="qtext">Тебе когда-нибудь нужны были финансовые данные по чужой компании — выручка, прибыль, долги за год?</div>
+      <div class="qsub">Перед крупным договором, при оценке рисков</div>
+      <div class="choices" id="q7">
+        <button class="choice" onclick="pick('q7',this,'Да, регулярно нужно')"><span class="chk"></span>Да, регулярно нужно</button>
+        <button class="choice" onclick="pick('q7',this,'Иногда нужно')"><span class="chk"></span>Иногда нужно</button>
+        <button class="choice" onclick="pick('q7',this,'Никогда не нужно')"><span class="chk"></span>Никогда не нужно</button>
+        <button class="choice" onclick="pick('q7',this,'Не знал что такое возможно')"><span class="chk"></span>Не знал что такое возможно</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(6)">← Назад</button>
+      <button class="btn-next" id="n7" disabled onclick="go(8)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q8: Цена ══ -->
+  <div class="screen" id="s-8">
+    <div class="qcard">
+      <div class="qtag">08 — Монетизация</div>
+      <div class="qtext">Любая молдавская фирма → за 3 секунды: НДС, долги, суды, финансы + алерты если что-то меняется. Сколько не жалко в месяц?</div>
+      <div class="qsub">Напиши первую цифру которая пришла в голову — без раздумий</div>
+      <div class="price-wrap">
+        <span class="price-pfx">MDL</span>
+        <input class="inp price-inp" type="number" id="q8" placeholder="например 300" min="0" oninput="A.q8=this.value; document.getElementById('n8').disabled=!this.value">
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(7)">← Назад</button>
+      <button class="btn-next" id="n8" disabled onclick="go(9)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q9: Кто платит ══ -->
+  <div class="screen" id="s-9">
+    <div class="qcard">
+      <div class="qtag">09 — Бизнес-модель</div>
+      <div class="qtext">Кто бы платил за такой инструмент в твоём случае?</div>
+      <div class="choices" id="q9">
+        <button class="choice" onclick="pick('q9',this,'Я сам из своего кармана')"><span class="chk"></span>Я сам из своего кармана</button>
+        <button class="choice" onclick="pick('q9',this,'Компания / работодатель')"><span class="chk"></span>Компания / работодатель</button>
+        <button class="choice" onclick="pick('q9',this,'Закладывал бы в стоимость услуг')"><span class="chk"></span>Закладывал бы в стоимость услуг клиентам</button>
+        <button class="choice" onclick="pick('q9',this,'Никто — не вижу ценности')"><span class="chk"></span>Никто — не вижу ценности</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(8)">← Назад</button>
+      <button class="btn-next" id="n9" disabled onclick="go(10)">Дальше →</button>
+    </div>
+  </div>
+
+  <!-- ══ Q10: Контакт ══ -->
+  <div class="screen" id="s-10">
+    <div class="qcard">
+      <div class="qtag">10 — Последний шаг</div>
+      <div class="qtext">Запускаем в июне. Дам PRO-доступ на 60 дней бесплатно — оставь контакт?</div>
+      <div class="qsub">Email или телефон. Никакого спама — только когда будет готово.</div>
+      <input class="inp" type="text" id="q10" placeholder="email или номер телефона" oninput="A.q10=this.value">
+    </div>
+    <div class="nav">
+      <button class="btn-back" onclick="go(9)">← Назад</button>
+      <button class="btn-next" id="n10" onclick="finish()">Отправить ✓</button>
+    </div>
+  </div>
+
+  <!-- ══ THANKS ══ -->
+  <div class="screen" id="s-thanks">
+    <div class="thanks">
+      <div class="ty-ring">🙌</div>
+      <h2 class="ty-h">Спасибо,<br><em>это реально помогает!</em></h2>
+      <p class="ty-p">Твои ответы помогут нам сделать продукт который реально нужен — а не то что мы придумали в офисе.</p>
+      <a href="https://siriusb2b.md" class="ty-demo" target="_blank">Посмотреть демо →</a>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// ЗАМЕНИ эти две строки после создания бота:
+const TG_TOKEN  = 'ВСТАВЬ_ТОКЕН_БОТА_СЮДА';
+const TG_CHAT_ID = 'ВСТАВЬ_CHAT_ID_СЮДА';
+// ────────────────────────────────────────────────────────────────────────────
+
+const TOTAL = 10;
+let cur = 0; // 0=intro, 1-10=questions, 11=thanks
+const A = {}; // answers
+
+// ── NAVIGATION ──────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateProgress(n) {
+  const wrap = document.getElementById('progWrap');
+  if (n === 0 || n > TOTAL) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const pct = Math.round((n / TOTAL) * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent = pct + '%';
+  document.getElementById('progLabel').textContent = `Вопрос ${n} из ${TOTAL}`;
+}
+
+function startSurvey() { go(1); }
+
+function go(n) {
+  cur = n;
+  updateProgress(n);
+  if (n === 0) showScreen('s-intro');
+  else showScreen('s-' + n);
+}
+
+// ── ANSWER HELPERS ──────────────────────────────────────────────────────────
+function pick(qid, el, val) {
+  document.querySelectorAll('#' + qid + ' .choice').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  A[qid] = val;
+  const num = qid.replace('q','');
+  const btn = document.getElementById('n' + num);
+  if (btn) btn.disabled = false;
+}
+
+function multi(qid, el, val) {
+  el.classList.toggle('sel');
+  const sel = [...document.querySelectorAll('#' + qid + ' .choice.sel')].map(b =>
+    b.textContent.trim()
+  );
+  A[qid] = sel;
+  const num = qid.replace('q','');
+  const btn = document.getElementById('n' + num);
+  if (btn) btn.disabled = sel.length === 0;
+}
+
+function pickScale(qid, el, val) {
+  document.querySelectorAll('#' + qid + ' .scl').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  A[qid] = val;
+  const num = qid.replace('q','');
+  const btn = document.getElementById('n' + num);
+  if (btn) btn.disabled = false;
+}
+
+function checkText(qid, btnId) {
+  const val = document.getElementById(qid).value.trim();
+  A[qid] = val;
+  document.getElementById(btnId).disabled = val.length < 5;
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────────────────
+async function finish() {
+  A.q10 = document.getElementById('q10').value.trim();
+  A.time = new Date().toLocaleString('ru-RU');
+
+  showScreen('s-thanks');
+  updateProgress(11);
+
+  await sendToTelegram();
+}
+
+async function sendToTelegram() {
+  if (!TG_TOKEN || TG_TOKEN === 'ВСТАВЬ_ТОКЕН_БОТА_СЮДА') return;
+
+  const labels = {
+    q1:  '👤 Роль',
+    q2:  '📊 Клиентов',
+    q3:  '🔍 Что проверяет',
+    q4:  '💬 Про 1С / как узнаёт',
+    q5:  '⚠️ Плохой клиент',
+    q6:  '🔔 Нужность алертов',
+    q7:  '💰 Нужны фин. данные',
+    q8:  '💵 Готов платить MDL/мес',
+    q9:  '🧾 Кто платит',
+    q10: '📱 Контакт',
+    time:'🕐 Время',
+  };
+
+  let msg = '🆕 *Новый ответ — SiriusB2B CustDev*\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+
+  for (const [key, label] of Object.entries(labels)) {
+    const val = A[key];
+    if (!val || (Array.isArray(val) && val.length === 0)) continue;
+    const display = Array.isArray(val) ? val.join(', ') : val;
+    msg += `${label}: *${display}*\n`;
+  }
+
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch(e) {
+    console.error('TG error:', e);
+  }
+}
+</script>
+</body>
+</html>
